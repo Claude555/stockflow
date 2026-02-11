@@ -1,0 +1,278 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Users & Authentication
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          Role      @default(CASHIER)
+  phone         String?
+  image         String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  sales         Sale[]
+  activities    ActivityLog[]
+  createdProducts Product[] @relation("CreatedBy")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  CASHIER
+}
+
+// Products & Inventory
+model Product {
+  id                String      @id @default(cuid())
+  name              String
+  description       String?
+  sku               String      @unique
+  barcode           String?     @unique
+  category          Category    @relation(fields: [categoryId], references: [id])
+  categoryId        String
+  
+  costPrice         Float
+  sellingPrice      Float
+  profitMargin      Float
+  
+  stockQuantity     Int         @default(0)
+  minStockLevel     Int         @default(10)
+  unit              String      @default("pcs")
+  
+  supplier          Supplier?   @relation(fields: [supplierId], references: [id])
+  supplierId        String?
+  location          String?
+  image             String?
+  
+  isActive          Boolean     @default(true)
+  createdBy         User        @relation("CreatedBy", fields: [createdById], references: [id])
+  createdById       String
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  saleItems         SaleItem[]
+  stockMovements    StockMovement[]
+  
+  @@index([categoryId])
+  @@index([supplierId])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  
+  products    Product[]
+}
+
+model Supplier {
+  id          String    @id @default(cuid())
+  name        String
+  phone       String
+  email       String?
+  address     String?
+  createdAt   DateTime  @default(now())
+  
+  products    Product[]
+}
+
+// Sales
+model Sale {
+  id              String      @id @default(cuid())
+  saleNumber      String      @unique
+  
+  customer        Customer?   @relation(fields: [customerId], references: [id])
+  customerId      String?
+  
+  items           SaleItem[]
+  subtotal        Float
+  discount        Float       @default(0)
+  total           Float
+  
+  paymentMethod   PaymentMethod
+  paymentStatus   PaymentStatus @default(COMPLETED)
+  mpesaCode       String?
+  
+  soldBy          User        @relation(fields: [soldById], references: [id])
+  soldById        String
+  notes           String?
+  createdAt       DateTime    @default(now())
+  
+  creditSale      CreditSale?
+  
+  @@index([createdAt])
+}
+
+model StoreSettings {
+  id              String    @id @default(cuid())
+  storeName       String    @default("StockFlow")
+  storeEmail      String?
+  storePhone      String?
+  storeAddress    String?
+  currency        String    @default("KES")
+  taxRate         Float     @default(0)
+  receiptFooter   String?
+  logo            String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model SaleItem {
+  id            String    @id @default(cuid())
+  sale          Sale      @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  saleId        String
+  product       Product   @relation(fields: [productId], references: [id])
+  productId     String
+  
+  quantity      Int
+  unitPrice     Float
+  subtotal      Float
+  
+  @@index([saleId])
+}
+
+enum PaymentMethod {
+  CASH
+  MPESA
+  BANK_TRANSFER
+  CREDIT
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+// Customers
+model Customer {
+  id          String    @id @default(cuid())
+  name        String
+  phone       String    @unique
+  email       String?
+  address     String?
+  createdAt   DateTime  @default(now())
+  
+  sales       Sale[]
+  creditSales CreditSale[]
+  creditLimit CustomerCreditLimit?
+}
+
+// Credit/Deni System
+model CreditSale {
+  id              String        @id @default(cuid())
+  sale            Sale          @relation(fields: [saleId], references: [id])
+  saleId          String        @unique
+  customer        Customer      @relation(fields: [customerId], references: [id])
+  customerId      String
+  
+  totalAmount     Float
+  amountPaid      Float         @default(0)
+  balance         Float
+  dueDate         DateTime?
+  status          CreditStatus  @default(ACTIVE)
+  
+  payments        CreditPayment[]
+  createdAt       DateTime      @default(now())
+  
+  @@index([customerId])
+  @@index([status])
+}
+
+enum CreditStatus {
+  ACTIVE
+  PARTIAL
+  PAID
+  OVERDUE
+}
+
+model CreditPayment {
+  id              String        @id @default(cuid())
+  creditSale      CreditSale    @relation(fields: [creditSaleId], references: [id])
+  creditSaleId    String
+  
+  amount          Float
+  paymentMethod   PaymentMethod
+  mpesaCode       String?
+  notes           String?
+  createdAt       DateTime      @default(now())
+  
+  @@index([creditSaleId])
+}
+
+model CustomerCreditLimit {
+  id              String    @id @default(cuid())
+  customer        Customer  @relation(fields: [customerId], references: [id])
+  customerId      String    @unique
+  
+  creditLimit     Float
+  currentDebt     Float     @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Stock Management
+model StockMovement {
+  id          String        @id @default(cuid())
+  product     Product       @relation(fields: [productId], references: [id])
+  productId   String
+  
+  type        MovementType
+  quantity    Int
+  reason      String?
+  reference   String?
+  createdAt   DateTime      @default(now())
+  
+  @@index([productId])
+}
+
+enum MovementType {
+  PURCHASE
+  SALE
+  ADJUSTMENT
+  DAMAGE
+}
+
+// Activity Logs
+model ActivityLog {
+  id          String    @id @default(cuid())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
+  action      String
+  entity      String
+  details     String?
+  createdAt   DateTime  @default(now())
+  
+  @@index([userId])
+}
+
+// Alerts
+model Alert {
+  id          String      @id @default(cuid())
+  type        AlertType
+  title       String
+  message     String
+  productId   String?
+  isRead      Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  
+  @@index([isRead])
+}
+
+enum AlertType {
+  LOW_STOCK
+  OUT_OF_STOCK
+  SYSTEM
+}
