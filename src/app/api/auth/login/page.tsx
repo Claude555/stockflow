@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -46,6 +46,8 @@ export default function LoginPage() {
   }
 
   return (
+    <Suspense fallback={null}>
+
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4">
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="space-y-3 text-center pb-8">
@@ -119,5 +121,6 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
+    </Suspense>
   )
 }
