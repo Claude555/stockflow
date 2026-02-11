@@ -12,6 +12,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Store } from "lucide-react"
 import { toast } from "sonner"
 
+export const dynamic = "force-dynamic"
+
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
