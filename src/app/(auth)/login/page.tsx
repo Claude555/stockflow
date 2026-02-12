@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useState } from "react"
+import { useState, Suspense } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
@@ -12,9 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Store } from "lucide-react"
 import { toast } from "sonner"
 
-export const dynamic = "force-dynamic"
-
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState("")
@@ -60,8 +58,6 @@ export default function LoginPage() {
   }
 
   return (
-    <Suspense fallback={null}>  
-    
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4">
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="space-y-3 text-center pb-8">
@@ -135,6 +131,17 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
+        <Loader2 className="h-8 w-8 animate-spin text-white" />
+      </div>
+    }>
+      <LoginForm />
     </Suspense>
   )
 }
