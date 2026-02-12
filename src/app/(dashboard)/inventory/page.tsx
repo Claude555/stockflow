@@ -162,20 +162,20 @@ export default function InventoryPage() {
   }
 
   return (
-    <div className="space-y-6 p-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Inventory</h1>
-          <p className="text-muted-foreground">Manage your products and stock</p>
-        </div>
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6 lg:p-8">
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Inventory</h1>
+      <p className="text-sm sm:text-base text-muted-foreground">Manage your products and stock</p>
+    </div>
 
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Product
-            </Button>
-          </DialogTrigger>
+    <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+      <DialogTrigger asChild>
+        <Button className="w-full sm:w-auto">
+          <Plus className="mr-2 h-4 w-4" />
+          Add Product
+        </Button>
+      </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Add New Product</DialogTitle>
@@ -199,18 +199,18 @@ export default function InventoryPage() {
         />
       </div>
 
-      {products.length === 0 ? (
-        <Card className="p-12">
-          <div className="text-center">
-            <Package className="mx-auto h-12 w-12 text-muted-foreground" />
-            <h3 className="mt-4 text-lg font-semibold">No products found</h3>
-            <p className="text-sm text-muted-foreground mt-2">
-              Add your first product to get started
-            </p>
-          </div>
-        </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+  {products.length === 0 ? (
+    <Card className="p-8 sm:p-12">
+      <div className="text-center">
+        <Package className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground" />
+        <h3 className="mt-4 text-base sm:text-lg font-semibold">No products found</h3>
+        <p className="text-sm text-muted-foreground mt-2">
+          Add your first product to get started
+        </p>
+      </div>
+    </Card>
+  ) : (
+    <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product: any) => (
             <Card key={product.id} className="p-4">
               <div className="space-y-3">
